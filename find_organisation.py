@@ -1,4 +1,5 @@
 import requests
+from distance import *
 
 
 def find_organisation(long, lat, delta1, delta2):
@@ -21,10 +22,13 @@ def find_organisation(long, lat, delta1, delta2):
     org = json_response["features"][0]
     org_name = org["properties"]["CompanyMetaData"]["name"]
     org_address = org["properties"]["CompanyMetaData"]["address"]
+    org_hours = org["properties"]["CompanyMetaData"]["Hours"]["text"]
 
     point = org["geometry"]["coordinates"]
     org_point = "{0},{1}".format(point[0], point[1])
     delta = "0.005"
+    distance = lonlat_distance([float(long), float(lat)], [float(point[0]), float(point[1])])
+    print(org_name, org_address, org_hours, "{:.0f}".format(distance) + " метров", sep='\n')
 
     map_params = {
         "l": "map",
