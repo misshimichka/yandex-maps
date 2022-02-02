@@ -2,7 +2,7 @@ import requests
 from distance import *
 
 
-def find_organisation(long, lat, delta1, delta2):
+def find_organisation(long, lat, delta1, delta2, n):
     search_api_server = "https://search-maps.yandex.ru/v1/"
 
     search_params = {
@@ -19,6 +19,8 @@ def find_organisation(long, lat, delta1, delta2):
 
     json_response = response.json()
 
+    points = many_organisations(json_response["features"][:n])
+
     org = json_response["features"][0]
     org_name = org["properties"]["CompanyMetaData"]["name"]
     org_address = org["properties"]["CompanyMetaData"]["address"]
@@ -27,13 +29,33 @@ def find_organisation(long, lat, delta1, delta2):
     point = org["geometry"]["coordinates"]
     org_point = "{0},{1}".format(point[0], point[1])
     delta = "0.005"
+
     distance = lonlat_distance([float(long), float(lat)], [float(point[0]), float(point[1])])
-    print(org_name, org_address, org_hours, "{:.0f}".format(distance) + " метров", sep='\n')
+
+    if len(points) == 1:
+        print(org_name, org_address, org_hours, round(distance), sep='\n')
 
     map_params = {
         "l": "map",
-        "pt": "{0},pm2dgl~{1},pm2dgl".format(org_point, f"{long},{lat}")
+        "pt": f"{long},{lat},pm2rdl~" + points
     }
 
     map_api_server = "http://static-maps.yandex.ru/1.x/"
     return requests.get(map_api_server, params=map_params)
+
+
+def many_organisations(organisations):
+    points = []
+    for org in organisations:
+        if org["properties"]["CompanyMetaData"]["Hours"]:
+            if len(org["properties"]["CompanyMetaData"]["Hours"]["Availabilities"][0]) == 2:
+                point = org["geometry"]["coordinates"]
+                org_point = "{0},{1},pm2gnm".format(point[0], point[1])
+            else:
+                point = org["geometry"]["coordinates"]
+                org_point = "{0},{1},pm2blm".format(point[0], point[1])
+        else:
+            point = org["geometry"]["coordinates"]
+            org_point = "{0},{1},pm2grm".format(point[0], point[1])
+        points.append(org_point)
+    return "~".join(points)
