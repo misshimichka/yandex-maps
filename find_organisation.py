@@ -7,7 +7,7 @@ def find_organisation(long, lat, delta1, delta2, n):
 
     search_params = {
         "apikey": "dda3ddba-c9ea-4ead-9010-f43fbc15c6e3",
-        "text": "аптека",
+        "text": "Университет ИТМО",
         "lang": "ru_RU",
         "ll": f"{long},{lat}",
         "type": "biz"
@@ -22,9 +22,6 @@ def find_organisation(long, lat, delta1, delta2, n):
     points = many_organisations(json_response["features"][:n])
 
     org = json_response["features"][0]
-    org_name = org["properties"]["CompanyMetaData"]["name"]
-    org_address = org["properties"]["CompanyMetaData"]["address"]
-    org_hours = org["properties"]["CompanyMetaData"]["Hours"]["text"]
 
     point = org["geometry"]["coordinates"]
     org_point = "{0},{1}".format(point[0], point[1])
@@ -33,6 +30,9 @@ def find_organisation(long, lat, delta1, delta2, n):
     distance = lonlat_distance([float(long), float(lat)], [float(point[0]), float(point[1])])
 
     if len(points) == 1:
+        org_name = org["properties"]["CompanyMetaData"]["name"]
+        org_address = org["properties"]["CompanyMetaData"]["address"]
+        org_hours = org["properties"]["CompanyMetaData"]["Hours"]["text"]
         print(org_name, org_address, org_hours, round(distance), sep='\n')
 
     map_params = {
@@ -47,7 +47,7 @@ def find_organisation(long, lat, delta1, delta2, n):
 def many_organisations(organisations):
     points = []
     for org in organisations:
-        if org["properties"]["CompanyMetaData"]["Hours"]:
+        if "Hours" in org["properties"]["CompanyMetaData"].keys():
             if len(org["properties"]["CompanyMetaData"]["Hours"]["Availabilities"][0]) == 2:
                 point = org["geometry"]["coordinates"]
                 org_point = "{0},{1},pm2gnm".format(point[0], point[1])
